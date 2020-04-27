@@ -7,4 +7,4 @@ doit:
 	$(CC) -std=c++11 -Wall *.cc -o $(OUT) $(CFLAGS)
 
 run:
-	./$(OUT) -d yes
+	./$(OUT) -r compact  -d yes

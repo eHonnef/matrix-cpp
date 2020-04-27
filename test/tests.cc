@@ -7,11 +7,15 @@ TEST_CASE("Matrix to string/matrix name", "[Matrix to string/Matrix name]") {
   std::cout << "Print test:" << std::endl;
   std::cout << "This should print \"Matrix<i>[5][8]\": " << a << std::endl;
   std::cout << "This should also print \"Matrix<i>[5][8]\": " << a.to_string() << std::endl;
+  a.print();
 }
 
 TEST_CASE("Matrix errors", "[Matrix errors]") {
   REQUIRE_THROWS(Matrix<int>({{0, 1, 2}, {3, 4, 5}, {6, 7}}));
   REQUIRE_THROWS(Matrix<int>({{0, 1, 2}, {3, 4, 5, 7}, {6, 7, 8}}));
+
+  Matrix<int> a({{0, 1, 2}, {3, 4, 5}});
+  REQUIRE_THROWS(a.at(10, 10));
 }
 
 TEST_CASE("Matrix structure", "[Matrix structure]") {
@@ -19,6 +23,27 @@ TEST_CASE("Matrix structure", "[Matrix structure]") {
   REQUIRE(a.rows() == 5);
   REQUIRE(a.cols() == 8);
   REQUIRE(a.size() == (5 * 8));
+}
+
+TEST_CASE("Matrix access and values", "[Matrix access and values]") {
+  Matrix<int> a(5, 8);
+  Matrix<int> b(5, 8, 10);
+  a[4][4] = 123;
+  a.at(3, 3) = 987;
+
+  b[4][4] = 1234;
+  b.at(3, 3) = 654;
+
+  REQUIRE(a[1][3] == int());
+  REQUIRE(a[4][4] == 123);
+  REQUIRE(a.at(1, 3) == int());
+  REQUIRE(a.at(4, 4) == 123);
+  REQUIRE(a.at(3, 3) == 987);
+  REQUIRE(b[4][4] == 1234);
+  REQUIRE(b[1][4] == 10);
+  REQUIRE(b.at(4, 4) == 1234);
+  REQUIRE(b.at(3, 3) == 654);
+  REQUIRE(b.at(1, 4) == 10);
 }
 
 TEST_CASE("Matrix brace initialize", "[Matrix brace initialize]") {
@@ -33,17 +58,37 @@ TEST_CASE("Matrix brace initialize", "[Matrix brace initialize]") {
   REQUIRE(a[1][2] == 5);
 }
 
-TEST_CASE("Matrix access and values", "[Matrix access and values]") {
-  Matrix<int> a(5, 8);
-  Matrix<int> b(5, 8, 10);
-  a[4][4] = 123;
-  b[4][4] = 1234;
+TEST_CASE("Matrix row deallocation", "[Matrix row deallocation]") {
+  Matrix<int> a(5, 8, 5);
+  REQUIRE_THROWS(a.remove_row(5));
 
-  REQUIRE(a[1][3] == int());
-  REQUIRE(a[4][4] == 123);
-  REQUIRE(b[4][4] == 1234);
-  REQUIRE(b[1][4] == 10);
+  // setting the values of row 1 to 3
+  for (auto i = a.cols(); i-- > 0;)
+    a[1][i] = 3;
+  a.remove_row(1);
+
+  REQUIRE(a.rows() == 4);
+  REQUIRE(a[1][3] != 3);
 }
+
+TEST_CASE("Matrix col deallocation", "[Matrix col deallocation]") {
+  Matrix<int> a(5, 8, 5);
+  REQUIRE_THROWS(a.remove_col(9));
+
+  // setting the values of col 3 to 9
+  for (auto i = a.rows(); i-- > 0;)
+    a[i][3] = 9;
+  a.remove_col(3);
+
+  REQUIRE(a.cols() == 7);
+  REQUIRE(a[3][3] != 9);
+}
+
+TEST_CASE("Matrix row insertion", "[Matrix row insertion]") {}
+TEST_CASE("Matrix append row", "[Matrix append row]") {}
+
+TEST_CASE("Matrix col insertion", "[Matrix col insertion]") {}
+TEST_CASE("Matrix append col", "[Matrix append col]") {}
 
 TEST_CASE("Matrix equality", "[Matrix equality]") {
   Matrix<int> a(5, 8);
