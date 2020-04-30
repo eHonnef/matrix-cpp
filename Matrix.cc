@@ -1,19 +1,3 @@
-/***************************************************************************************************
- *
- ***************************************************************************************************/
-#ifndef P_DELETE_H
-#define P_DELETE_H
-namespace Utils {
-template <typename U> inline void pDelete(U *&pointer) {
-  if (pointer) {
-    delete pointer;
-    pointer = nullptr;
-  }
-}
-template <typename U> inline void pDelete(U pointer) { return; }
-} // namespace Utils
-#endif // P_DELETE_H
-
 #ifndef MATRIX_H
 #define MATRIX_H
 /***************************************************************************************************
@@ -135,7 +119,7 @@ public:
   const Matrix &operator*(const T &value) { return (*this *= value); }
 
   void fill(const T &value) {
-    // hopping for a compiler optimization :D
+    // in the hope for a compiler optimization :D
     for (unsigned i = 0; i < size(); ++i)
       _array[i] = value;
   }
@@ -201,11 +185,57 @@ public:
   void append_col(const std::initializer_list<T> &values) { insert_col(_cols, values); }
 
   void insert_row(unsigned index, const std::initializer_list<T> &values) {
-    // @todo
+    if (index > _rows)
+      index = _rows;
+
+    unsigned index_add = index * _cols;
+    unsigned index_next = (index + 1) * _cols;
+
+    T *tmp_array = new T[(_rows + 1) * _cols];
+
+    std::memmove(tmp_array, _array, (index_add) * sizeof(T));
+
+    for (unsigned col = 0, i = index_add; i < index_next; ++i, ++col)
+      if (col < values.size())
+        tmp_array[i] = *(values.begin() + col);
+      else
+        tmp_array[i] = T();
+
+    std::memmove(tmp_array + index_next, _array + index_add, (size() - index_add) * sizeof(T));
+    _rows += 1;
+
+    dealloc();
+    _array = tmp_array;
   }
 
   void insert_col(unsigned index, const std::initializer_list<T> &values) {
-    // @todo
+    if (index > _cols)
+      index = _cols;
+
+    unsigned sIndexO = 0; // start index old array
+    unsigned nIndex = 0;  // next index old array
+    unsigned pos = 0;     // next index old array
+    T *tmp_array = new T[_rows * (_cols + 1)];
+
+    std::memmove(tmp_array, _array, index * sizeof(T));
+
+    // adding the values row * _cols + col
+    for (unsigned i = 0; i < _rows; ++i) {
+      pos = i * (_cols + 1) + index;
+      sIndexO = i * _cols + index;
+      nIndex = (i + 1) * _cols + index;
+
+      if (i < values.size())
+        tmp_array[pos] = *(values.begin() + i);
+      else
+        tmp_array[pos] = T();
+
+      std::memmove(tmp_array + pos + 1, _array + sIndexO, (nIndex - sIndexO) * sizeof(T));
+    }
+
+    _cols += 1;
+    dealloc();
+    _array = tmp_array;
   }
 
 private:

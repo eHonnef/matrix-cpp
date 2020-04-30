@@ -87,65 +87,65 @@ TEST_CASE("Matrix col deallocation", "[Matrix col deallocation]") {
 TEST_CASE("Matrix row insertion", "[Matrix row insertion]") {
   Matrix<int> a(5, 2, 5);
 
-  a.insert_row(2, {0, 1});
-  REQUIRE(a.at(2, 0) == 0);
+  a.insert_row(2, {9, 1});
+  REQUIRE(a.at(2, 0) == 9);
   REQUIRE(a.at(2, 1) == 1);
 
   a.insert_row(2, {87});
   REQUIRE(a.at(2, 0) == 87);
   REQUIRE(a.at(2, 1) == int());
 
-  a.insert_row(2, {0, 1, 2});
-  REQUIRE(a.at(2, 0) == 0);
-  REQUIRE(a.at(2, 1) == 1);
+  a.insert_row(2, {7, 8, 2});
+  REQUIRE(a.at(2, 0) == 7);
+  REQUIRE(a.at(2, 1) == 8);
 }
 
 TEST_CASE("Matrix append row", "[Matrix append row]") {
   Matrix<int> a(5, 2, 5);
 
-  a.append_row({0, 1});
-  REQUIRE(a.at(5, 0) == 0);
+  a.append_row({9, 1});
+  REQUIRE(a.at(5, 0) == 9);
   REQUIRE(a.at(5, 1) == 1);
 
   a.append_row({87});
   REQUIRE(a.at(6, 0) == 87);
   REQUIRE(a.at(6, 1) == int());
 
-  a.append_row({0, 1, 2});
-  REQUIRE(a.at(7, 0) == 0);
-  REQUIRE(a.at(7, 1) == 1);
+  a.append_row({7, 8, 2});
+  REQUIRE(a.at(7, 0) == 7);
+  REQUIRE(a.at(7, 1) == 8);
 }
 
 TEST_CASE("Matrix col insertion", "[Matrix col insertion]") {
   Matrix<int> a(2, 5, 5);
 
-  a.insert_col(2, {0, 1});
-  REQUIRE(a.at(0, 2) == 0);
+  a.insert_col(2, {9, 1});
+  REQUIRE(a.at(0, 2) == 9);
   REQUIRE(a.at(1, 2) == 1);
 
   a.insert_col(2, {87});
   REQUIRE(a.at(0, 2) == 87);
   REQUIRE(a.at(1, 2) == int());
 
-  a.insert_col(2, {0, 1, 2});
-  REQUIRE(a.at(0, 2) == 0);
-  REQUIRE(a.at(1, 2) == 1);
+  a.insert_col(2, {7, 8, 2});
+  REQUIRE(a.at(0, 2) == 7);
+  REQUIRE(a.at(1, 2) == 8);
 }
 
 TEST_CASE("Matrix append col", "[Matrix append col]") {
   Matrix<int> a(2, 5, 5);
 
-  a.append_col({0, 1});
-  REQUIRE(a.at(0, 5) == 0);
+  a.append_col({9, 1});
+  REQUIRE(a.at(0, 5) == 9);
   REQUIRE(a.at(1, 5) == 1);
 
   a.append_col({87});
   REQUIRE(a.at(0, 6) == 87);
   REQUIRE(a.at(1, 6) == int());
 
-  a.append_col({0, 1, 2});
-  REQUIRE(a.at(0, 7) == 0);
-  REQUIRE(a.at(1, 7) == 1);
+  a.append_col({7, 8, 2});
+  REQUIRE(a.at(0, 7) == 7);
+  REQUIRE(a.at(1, 7) == 8);
 }
 
 TEST_CASE("Matrix equality", "[Matrix equality]") {
