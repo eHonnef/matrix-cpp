@@ -84,8 +84,37 @@ TEST_CASE("Matrix col deallocation", "[Matrix col deallocation]") {
   REQUIRE(a[3][3] != 9);
 }
 
-TEST_CASE("Matrix row insertion", "[Matrix row insertion]") {}
-TEST_CASE("Matrix append row", "[Matrix append row]") {}
+TEST_CASE("Matrix row insertion", "[Matrix row insertion]") {
+  Matrix<int> a(5, 2, 5);
+
+  a.insert_row(2, {0, 1});
+  REQUIRE(a[2][0] == 0);
+  REQUIRE(a[2][1] == 1);
+
+  a.insert_row(2, {87});
+  REQUIRE(a[2][0] == 87);
+  REQUIRE(a[2][1] == int());
+
+  a.insert_row(2, {0, 1, 2});
+  REQUIRE(a[2][0] == 0);
+  REQUIRE(a[2][1] == 1);
+}
+
+TEST_CASE("Matrix append row", "[Matrix append row]") {
+  Matrix<int> a(5, 2, 5);
+
+  a.append_row({0, 1});
+  REQUIRE(a[5][0] == 0);
+  REQUIRE(a[5][1] == 1);
+
+  a.append_row({87});
+  REQUIRE(a[6][0] == 87);
+  REQUIRE(a[6][1] == int());
+
+  a.append_row({0, 1, 2});
+  REQUIRE(a[7][0] == 0);
+  REQUIRE(a[7][1] == 1);
+}
 
 TEST_CASE("Matrix col insertion", "[Matrix col insertion]") {}
 TEST_CASE("Matrix append col", "[Matrix append col]") {}
