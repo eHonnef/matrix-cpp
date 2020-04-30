@@ -214,12 +214,12 @@ public:
 
     unsigned sIndexO = 0; // start index old array
     unsigned nIndex = 0;  // next index old array
-    unsigned pos = 0;     // next index old array
+    unsigned pos = 0;     // index of insertion in new array
     T *tmp_array = new T[_rows * (_cols + 1)];
 
     std::memmove(tmp_array, _array, index * sizeof(T));
 
-    // adding the values row * _cols + col
+    // adding the values
     for (unsigned i = 0; i < _rows; ++i) {
       pos = i * (_cols + 1) + index;
       sIndexO = i * _cols + index;
