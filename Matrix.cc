@@ -24,6 +24,7 @@ template <typename U> inline void pDelete(U pointer) { return; }
 /***************************************************************************************************
  *
  ***************************************************************************************************/
+#include <algorithm>
 #include <cstring>
 #include <exception>
 #include <iomanip>
@@ -40,7 +41,7 @@ public:
   Matrix(unsigned rows, unsigned cols, T init_val = T()) {
     _rows = rows;
     _cols = cols;
-    alloc_init();
+    alloc();
 
     fill(init_val);
   }
@@ -50,7 +51,7 @@ public:
   Matrix(const std::initializer_list<std::initializer_list<T>> &init) {
     _rows = init.size();
     _cols = init.begin()->size();
-    alloc_init();
+    alloc();
 
     unsigned row = 0;
     unsigned col = 0;
@@ -59,11 +60,21 @@ public:
         throw std::runtime_error("The row <" + std::to_string(row) +
                                  "> has more/less columns than the others.");
       for (const auto &it_c : it_r)
-        _matrix[row][col++] = it_c;
+        _array[index(row, col++)] = it_c;
 
       col = 0;
       row += 1;
     }
+  }
+  /***************************************************************************************************
+   *
+   ***************************************************************************************************/
+  Matrix(unsigned rows, unsigned cols, const T *array) {
+    _rows = rows;
+    _cols = cols;
+    alloc();
+
+    std::memmove(_array, array, rows * cols * sizeof(T));
   }
   /***************************************************************************************************
    *
@@ -82,29 +93,21 @@ public:
    ***************************************************************************************************/
   unsigned rows() const { return _rows; }
   unsigned cols() const { return _cols; }
-  unsigned size() const { return _rows * _cols; }
-  /***************************************************************************************************
-   *
-   ***************************************************************************************************/
-  T *operator[](unsigned index) { return _matrix[index]; }
-  T *operator[](unsigned index) const { return _matrix[index]; }
+  unsigned size() const { return _cols * _rows; }
   /***************************************************************************************************
    *
    ***************************************************************************************************/
   T &at(unsigned row, unsigned col) {
-    if (row >= _rows || col >= _cols)
-      throw std::out_of_range("Out of bound");
-
-    return _matrix[row][col];
+    bound_check(row, col);
+    return _array[index(row, col)];
   }
   /***************************************************************************************************
    *
    ***************************************************************************************************/
   T &at(unsigned row, unsigned col) const {
     if (row >= _rows || col >= _cols)
-      throw std::out_of_range("Out of bound");
-
-    return _matrix[row][col];
+      throw std::out_of_range("out of bounds");
+    return _array[index(row, col)];
   }
   /***************************************************************************************************
    *
@@ -153,7 +156,7 @@ public:
 
     for (auto i = _rows; i-- > 0;)
       for (auto j = _cols; j-- > 0;)
-        if (m[i][j] != _matrix[i][j])
+        if (at(i, j) != m.at(i, j))
           return false;
 
     return true;
@@ -169,9 +172,9 @@ public:
    *
    ***************************************************************************************************/
   void fill(const T &value) {
-    for (auto i = _rows; i-- > 0;)
-      for (auto j = _cols; j-- > 0;)
-        _matrix[i][j] = value;
+    // hopping for a compiler optimization :D
+    for (unsigned i = 0; i < size(); ++i)
+      _array[i] = value;
   }
   /***************************************************************************************************
    *
@@ -183,7 +186,7 @@ public:
     for (unsigned i = 0; i < _rows; i++) {
       std::cout << std::setw(3);
       for (unsigned j = 0; j < _cols; j++)
-        std::cout << _matrix[i][j] << std::setw(3);
+        std::cout << _array[index(i, j)] << std::setw(3);
 
       std::cout << std::endl;
     }
@@ -192,11 +195,11 @@ public:
    *
    ***************************************************************************************************/
   Matrix transpose() {
-    Matrix<T> rtn(_cols, _rows);
-
+    // @todo: needs more efficiency
+    Matrix rtn(_cols, _rows);
     for (auto i = _rows; i-- > 0;)
       for (auto j = _cols; j-- > 0;)
-        rtn[j][i] = _matrix[i][j];
+        rtn.at(j, i) = _array[index(i, j)];
 
     return rtn;
   }
@@ -204,32 +207,42 @@ public:
    *
    ***************************************************************************************************/
   void remove_row(unsigned row) {
-    if (row >= _rows)
-      throw std::out_of_range("row is out of bound.");
+    bound_check(row, _cols - 1);
 
-    delete[] _matrix[row];
-    _matrix[row] = nullptr;
-    for (auto i = row + 1; i < _rows; ++i)
-      _matrix[i - 1] = _matrix[i];
+    unsigned index_del = row * _cols;
+    unsigned index_next = (row + 1) * _cols;
 
-    _rows--;
+    T *tmp_array = new T[(_rows - 1) * _cols];
+
+    std::memmove(tmp_array, _array, (index_del) * sizeof(T));
+    std::memmove(tmp_array + index_del, _array + index_next, (size() - index_next) * sizeof(T));
+    _rows -= 1;
+
+    dealloc();
+    _array = tmp_array;
   }
   /***************************************************************************************************
    *
    ***************************************************************************************************/
   void remove_col(unsigned col) {
-    if (col >= _cols)
-      throw std::out_of_range("col is out of bound.");
+    bound_check(_rows - 1, col);
 
-    if (std::is_pointer<T>::value)
-      for (auto i = _rows; i-- > 0;)
-        Utils::pDelete(_matrix[i][col]);
+    unsigned sIndexN = 0; // start index new array
+    unsigned sIndexO = 0; // start index old array
+    unsigned nIndex = 0;  // next index old array
+    T *tmp_array = new T[_rows * (_cols - 1)];
 
-    for (unsigned i = 0; i < _rows; ++i)
-      for (auto j = col + 1; j < _cols; ++j)
-        _matrix[i][j - 1] = _matrix[i][j];
+    std::memmove(tmp_array, _array, col * sizeof(T));
+    for (unsigned i = 0; i < _rows; ++i) {
+      sIndexN = i * (_cols - 1) + col;
+      sIndexO = i * _cols + col;
+      nIndex = (i + 1) * _cols + col;
+      std::memmove(tmp_array + sIndexN, _array + sIndexO + 1, (nIndex - sIndexO - 1) * sizeof(T));
+    }
 
-    _cols--;
+    _cols -= 1;
+    dealloc();
+    _array = tmp_array;
   }
   /***************************************************************************************************
    *
@@ -249,64 +262,43 @@ public:
    *
    ***************************************************************************************************/
   void insert_row(unsigned index, const std::initializer_list<T> &values) {
-    realloc(_rows + 1, _cols);
-    for (auto i = index + 1; i < _rows; ++i)
-      std::memcpy(_matrix[i], _matrix[i - 1], _cols * sizeof(T));
-
-    for (unsigned i = 0; i < _cols; ++i)
-      if (i >= values.size())
-        _matrix[index][i] = T();
-      else
-        _matrix[index][i] = *(values.begin() + i);
+    // @todo
   }
   /***************************************************************************************************
    *
    ***************************************************************************************************/
   void insert_col(unsigned index, const std::initializer_list<T> &values) {
-    //@todo
-    realloc(_rows, _cols + 1);
-
-    for (unsigned i = 0; i < _rows; ++i)
-      for (auto j = col + 1; j < _cols; ++j)
-        _matrix[i][j - 1] = _matrix[i][j];
+    // @todo
   }
+  /***************************************************************************************************
+   *
+   ***************************************************************************************************/
 
 private:
-  T **_matrix;
+  T *_array;
   unsigned _rows;
   unsigned _cols;
   /***************************************************************************************************
    *
    ***************************************************************************************************/
-  void alloc_init() {
-    _matrix = new T *[_rows];
-    for (auto i = _rows; i-- > 0;)
-      _matrix[i] = new T[_cols];
-  }
+  unsigned index(unsigned row, unsigned col) const { return row * _cols + col; }
+  /***************************************************************************************************
+   *
+   ***************************************************************************************************/
+  void alloc() { _array = new T[_rows * _cols]; }
   /***************************************************************************************************
    *
    ***************************************************************************************************/
   void dealloc() {
-    for (auto i = _rows; i-- > 0;)
-      delete[] _matrix[i];
-
-    delete[] _matrix;
+    delete[] _array;
+    _array = nullptr;
   }
   /***************************************************************************************************
    *
    ***************************************************************************************************/
-  void realloc(unsigned rows, unsigned cols) {
-    T **tmp_matrix = new T *[rows];
-    for (auto i = rows; i-- > 0;)
-      tmp_matrix[i] = new T[cols];
-
-    for (auto i = _rows; i-- > 0;)
-      std::memcpy(tmp_matrix[i], _matrix[i], _cols * sizeof(T));
-
-    dealloc();
-    _rows = rows;
-    _cols = cols;
-    _matrix = tmp_matrix;
+  void bound_check(unsigned row, unsigned col) {
+    if (row >= _rows || col >= _cols)
+      throw std::out_of_range("out of range");
   }
   /***************************************************************************************************
    *

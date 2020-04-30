@@ -8,3 +8,6 @@ doit:
 
 run:
 	./$(OUT) -r compact  -d yes
+
+debug:
+	$(CC) -ggdb -std=c++11 -Wall *.cc -o $(OUT) $(CFLAGS)
