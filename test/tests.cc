@@ -58,30 +58,99 @@ TEST_CASE("Matrix brace initialize", "[Matrix brace initialize]") {
   REQUIRE(a.at(1, 2) == 5);
 }
 
-TEST_CASE("Matrix row deallocation", "[Matrix row deallocation]") {
+TEST_CASE("Remove matrix row", "[Remove matrix row]") {
   Matrix<int> a(5, 8, 5);
   REQUIRE_THROWS(a.remove_row(5));
 
   // setting the values of row 1 to 3
   for (auto i = a.cols(); i-- > 0;)
     a.at(1, i) = 3;
+
   a.remove_row(1);
 
   REQUIRE(a.rows() == 4);
-  REQUIRE(a.at(1, 3) != 3);
+  // checking if every element is 5
+  for (auto i = a.rows(); i-- > 0;)
+    for (auto j = a.cols(); j-- > 0;)
+      REQUIRE(a.at(i, j) == 5);
 }
 
-TEST_CASE("Matrix col deallocation", "[Matrix col deallocation]") {
+TEST_CASE("Matrix pop back row", "[Matrix pop back row]") {
+  Matrix<int> a(5, 8, 5);
+
+  // setting the values of row 4 to 3
+  for (auto i = a.cols(); i-- > 0;)
+    a.at(4, i) = 3;
+
+  a.pop_back_row();
+
+  REQUIRE(a.rows() == 4);
+  // checking if every element is 5
+  for (auto i = a.rows(); i-- > 0;)
+    for (auto j = a.cols(); j-- > 0;)
+      REQUIRE(a.at(i, j) == 5);
+}
+
+TEST_CASE("Matrix pop front row", "[Matrix pop front row]") {
+  Matrix<int> a(5, 8, 5);
+
+  // setting the values of row 0 to 3
+  for (auto i = a.cols(); i-- > 0;)
+    a.at(0, i) = 3;
+
+  a.pop_front_row();
+
+  REQUIRE(a.rows() == 4);
+  // checking if every element is 5
+  for (auto i = a.rows(); i-- > 0;)
+    for (auto j = a.cols(); j-- > 0;)
+      REQUIRE(a.at(i, j) == 5);
+}
+
+TEST_CASE("Remove matrix col", "[Remove matrix col]") {
   Matrix<int> a(5, 8, 5);
   REQUIRE_THROWS(a.remove_col(9));
 
   // setting the values of col 3 to 9
   for (auto i = a.rows(); i-- > 0;)
     a.at(i, 3) = 9;
+
   a.remove_col(3);
 
   REQUIRE(a.cols() == 7);
-  REQUIRE(a.at(3, 3) != 9);
+  for (auto i = a.rows(); i-- > 0;)
+    for (auto j = a.cols(); j-- > 0;)
+      REQUIRE(a.at(i, j) == 5);
+}
+
+TEST_CASE("Matrix pop back col", "[Matrix pop back col]") {
+  Matrix<int> a(5, 8, 5);
+
+  // setting the values of col 7 to 9
+  for (auto i = a.rows(); i-- > 0;)
+    a.at(i, 7) = 9;
+
+  a.pop_back_col();
+
+  REQUIRE(a.cols() == 7);
+  for (auto i = a.rows(); i-- > 0;)
+    for (auto j = a.cols(); j-- > 0;)
+      REQUIRE(a.at(i, j) == 5);
+}
+
+TEST_CASE("Matrix pop front col", "[Matrix pop front col]") {
+  Matrix<int> a(5, 8, 5);
+
+  // setting the values of col 0 to 9
+  for (auto i = a.rows(); i-- > 0;)
+    a.at(i, 0) = 9;
+
+  a.pop_front_col();
+
+  REQUIRE(a.cols() == 7);
+  for (auto i = a.rows(); i-- > 0;)
+    for (auto j = a.cols(); j-- > 0;)
+      REQUIRE(a.at(i, j) == 5);
 }
 
 TEST_CASE("Matrix row insertion", "[Matrix row insertion]") {
@@ -116,10 +185,27 @@ TEST_CASE("Matrix append row", "[Matrix append row]") {
   REQUIRE(a.at(7, 1) == 8);
 }
 
+TEST_CASE("Matrix prepend row", "[Matrix prepend row]") {
+  Matrix<int> a(5, 2, 5);
+
+  a.prepend_row({9, 1});
+  REQUIRE(a.at(0, 0) == 9);
+  REQUIRE(a.at(0, 1) == 1);
+
+  a.prepend_row({87});
+  REQUIRE(a.at(0, 0) == 87);
+  REQUIRE(a.at(0, 1) == int());
+
+  a.prepend_row({7, 8, 2});
+  REQUIRE(a.at(0, 0) == 7);
+  REQUIRE(a.at(0, 1) == 8);
+}
+
 TEST_CASE("Matrix col insertion", "[Matrix col insertion]") {
   Matrix<int> a(2, 5, 5);
 
   a.insert_col(2, {9, 1});
+  a.print();
   REQUIRE(a.at(0, 2) == 9);
   REQUIRE(a.at(1, 2) == 1);
 
@@ -136,6 +222,7 @@ TEST_CASE("Matrix append col", "[Matrix append col]") {
   Matrix<int> a(2, 5, 5);
 
   a.append_col({9, 1});
+  a.print();
   REQUIRE(a.at(0, 5) == 9);
   REQUIRE(a.at(1, 5) == 1);
 
@@ -146,6 +233,23 @@ TEST_CASE("Matrix append col", "[Matrix append col]") {
   a.append_col({7, 8, 2});
   REQUIRE(a.at(0, 7) == 7);
   REQUIRE(a.at(1, 7) == 8);
+}
+
+TEST_CASE("Matrix prepend col", "[Matrix append col]") {
+  Matrix<int> a(2, 5, 5);
+
+  a.prepend_col({9, 1});
+  a.print();
+  REQUIRE(a.at(0, 0) == 9);
+  REQUIRE(a.at(1, 0) == 1);
+
+  a.prepend_col({87});
+  REQUIRE(a.at(0, 0) == 87);
+  REQUIRE(a.at(1, 0) == int());
+
+  a.prepend_col({7, 8, 2});
+  REQUIRE(a.at(0, 0) == 7);
+  REQUIRE(a.at(1, 0) == 8);
 }
 
 TEST_CASE("Matrix equality", "[Matrix equality]") {

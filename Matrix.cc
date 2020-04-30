@@ -164,25 +164,38 @@ public:
     T *tmp_array = new T[_rows * (_cols - 1)];
 
     std::memmove(tmp_array, _array, col * sizeof(T));
-    for (unsigned i = 0; i < _rows; ++i) {
+    for (unsigned i = 0; i < (_rows - 1); ++i) {
       sIndexN = i * (_cols - 1) + col;
       sIndexO = i * _cols + col;
       nIndex = (i + 1) * _cols + col;
       std::memmove(tmp_array + sIndexN, _array + sIndexO + 1, (nIndex - sIndexO - 1) * sizeof(T));
     }
 
+    // last "row" needs to be manually set
+    sIndexN = (_rows - 1) * (_cols - 1) + col; // last row (or index) of the new array
+    sIndexO = (_rows - 1) * _cols + col;       // last row (or index) of the old array
+    std::memmove(tmp_array + sIndexN, _array + sIndexO + 1, (size() - sIndexO) * sizeof(T));
+
     _cols -= 1;
     dealloc();
     _array = tmp_array;
   }
+
+  void pop_back_col() { remove_col(_cols - 1); }
+  void pop_front_col() { remove_col(0); }
+
+  void pop_back_row() { remove_row(_rows - 1); }
+  void pop_front_row() { remove_row(0); }
 
   void reshape(unsigned rows, unsigned cols) {
     //@todo
   }
 
   void append_row(const std::initializer_list<T> &values) { insert_row(_rows, values); }
+  void prepend_row(const std::initializer_list<T> &values) { insert_row(0, values); }
 
   void append_col(const std::initializer_list<T> &values) { insert_col(_cols, values); }
+  void prepend_col(const std::initializer_list<T> &values) { insert_col(0, values); }
 
   void insert_row(unsigned index, const std::initializer_list<T> &values) {
     if (index > _rows)
@@ -202,8 +215,8 @@ public:
         tmp_array[i] = T();
 
     std::memmove(tmp_array + index_next, _array + index_add, (size() - index_add) * sizeof(T));
-    _rows += 1;
 
+    _rows += 1;
     dealloc();
     _array = tmp_array;
   }
@@ -213,25 +226,34 @@ public:
       index = _cols;
 
     unsigned sIndexO = 0; // start index old array
-    unsigned nIndex = 0;  // next index old array
-    unsigned pos = 0;     // index of insertion in new array
+    unsigned pos = 0; // index of insertion in new array
     T *tmp_array = new T[_rows * (_cols + 1)];
 
     std::memmove(tmp_array, _array, index * sizeof(T));
 
     // adding the values
-    for (unsigned i = 0; i < _rows; ++i) {
+    for (unsigned i = 0; i < (_rows - 1); ++i) {
       pos = i * (_cols + 1) + index;
       sIndexO = i * _cols + index;
-      nIndex = (i + 1) * _cols + index;
+      // nIndex = (i + 1) * _cols + index;
 
       if (i < values.size())
         tmp_array[pos] = *(values.begin() + i);
       else
         tmp_array[pos] = T();
 
-      std::memmove(tmp_array + pos + 1, _array + sIndexO, (nIndex - sIndexO) * sizeof(T));
+      std::memmove(tmp_array + pos + 1, _array + sIndexO, _cols * sizeof(T));
     }
+
+    // last "row" needs to be manually set
+    pos = (_rows - 1) * (_cols + 1) + index; // last index of the new array
+    sIndexO = (_rows - 1) * _cols + index;   // last index of the old array
+    std::memmove(tmp_array + pos + 1, _array + sIndexO, (size() - sIndexO) * sizeof(T));
+
+    if ((_rows - 1) < values.size())
+      tmp_array[pos] = *(values.begin() + (_rows - 1));
+    else
+      tmp_array[pos] = T();
 
     _cols += 1;
     dealloc();
