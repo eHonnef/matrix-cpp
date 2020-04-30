@@ -74,6 +74,17 @@ public:
     return _array[index(row, col)];
   }
 
+  T &array_access(unsigned index) {
+    bound_check(index);
+    return _array[index];
+  }
+
+  T &array_access(unsigned index) const {
+    if (index >= size())
+      throw std::out_of_range("out of bounds");
+    return _array[index];
+  }
+
   Matrix &operator=(const Matrix &m) {
     //@todo
   }
@@ -226,7 +237,7 @@ public:
       index = _cols;
 
     unsigned sIndexO = 0; // start index old array
-    unsigned pos = 0; // index of insertion in new array
+    unsigned pos = 0;     // index of insertion in new array
     T *tmp_array = new T[_rows * (_cols + 1)];
 
     std::memmove(tmp_array, _array, index * sizeof(T));
@@ -276,6 +287,11 @@ private:
 
   void bound_check(unsigned row, unsigned col) {
     if (row >= _rows || col >= _cols)
+      throw std::out_of_range("out of range");
+  }
+
+  void bound_check(unsigned index) {
+    if (index >= size())
       throw std::out_of_range("out of range");
   }
 };

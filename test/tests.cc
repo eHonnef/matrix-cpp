@@ -205,7 +205,6 @@ TEST_CASE("Matrix col insertion", "[Matrix col insertion]") {
   Matrix<int> a(2, 5, 5);
 
   a.insert_col(2, {9, 1});
-  a.print();
   REQUIRE(a.at(0, 2) == 9);
   REQUIRE(a.at(1, 2) == 1);
 
@@ -222,7 +221,6 @@ TEST_CASE("Matrix append col", "[Matrix append col]") {
   Matrix<int> a(2, 5, 5);
 
   a.append_col({9, 1});
-  a.print();
   REQUIRE(a.at(0, 5) == 9);
   REQUIRE(a.at(1, 5) == 1);
 
@@ -239,7 +237,6 @@ TEST_CASE("Matrix prepend col", "[Matrix append col]") {
   Matrix<int> a(2, 5, 5);
 
   a.prepend_col({9, 1});
-  a.print();
   REQUIRE(a.at(0, 0) == 9);
   REQUIRE(a.at(1, 0) == 1);
 
