@@ -260,6 +260,32 @@ TEST_CASE("Matrix equality", "[Matrix equality]") {
   REQUIRE(c != d);
 }
 
+TEST_CASE("Matrix reshape", "[Matrix reshape]") {
+  Matrix<int> a(2, 3);
+  for (auto i = a.rows(); i-- > 0;)
+    for (auto j = a.cols(); j-- > 0;)
+      a.at(i, j) = i * a.cols() + j;
+
+  a.reshape(3, 2);
+  REQUIRE(a.rows() == 3);
+  REQUIRE(a.cols() == 2);
+
+  REQUIRE(a.at(0, 0) == 0);
+  REQUIRE(a.at(0, 1) == 1);
+  REQUIRE(a.at(1, 0) == 2);
+  REQUIRE(a.at(1, 1) == 3);
+  REQUIRE(a.at(2, 0) == 4);
+  REQUIRE(a.at(2, 1) == 5);
+}
+
+TEST_CASE("Matrix reassign", "[Matrix reassign]") {
+  Matrix<int> a(2, 3, 10);
+  Matrix<int> b(546, 10, 3);
+
+  b = a;
+  REQUIRE(a == b);
+}
+
 TEST_CASE("Matrix transposition", "[Matrix transposition]") {
   Matrix<int> a({{0, 1, 2}, {3, 4, 5}});
   Matrix<int> b = a.transpose();
@@ -276,8 +302,33 @@ TEST_CASE("Matrix transposition", "[Matrix transposition]") {
   REQUIRE(b.at(2, 1) == 5);
 }
 
+TEST_CASE("Matrix scalar multiplication", "[Matrix scalar multiplication]") {
+  Matrix<int> a({{0, 1, 2}, {3, 4, 5}});
+  a *= 10;
+
+  REQUIRE(a.at(0, 0) == 0);
+  REQUIRE(a.at(0, 1) == 10);
+  REQUIRE(a.at(0, 2) == 20);
+  REQUIRE(a.at(1, 0) == 30);
+  REQUIRE(a.at(1, 1) == 40);
+  REQUIRE(a.at(1, 2) == 50);
+}
+
+TEST_CASE("Matrix division", "[Matrix division]") {
+  Matrix<int> a({{0, 1, 2}, {3, 4, 5}});
+  a *= 10;
+  a /= 10;
+
+  REQUIRE(a.at(0, 0) == 0);
+  REQUIRE(a.at(0, 1) == 1);
+  REQUIRE(a.at(0, 2) == 2);
+  REQUIRE(a.at(1, 0) == 3);
+  REQUIRE(a.at(1, 1) == 4);
+  REQUIRE(a.at(1, 2) == 5);
+}
+
 TEST_CASE("Matrices multiplication", "[Matrices multiplication]") {}
-TEST_CASE("Matrix scalar multiplication", "[Matrix scalar multiplication]") {}
 TEST_CASE("Sum of Matrices", "[Sum of Matrices]") {}
-TEST_CASE("Matrices subtraction", "[Matrices subtraction]") {}
+TEST_CASE("Subtraction of Matrices", "[Subtraction of Matrices]") {}
 TEST_CASE("Matrix inverse", "[Matrix inverse]") {}
+TEST_CASE("Matrix determinant", "[Matrix inverse]") {}

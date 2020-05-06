@@ -3,7 +3,6 @@
 /***************************************************************************************************
  *
  ***************************************************************************************************/
-#include "Operations.cc"
 #include <algorithm>
 #include <cstring>
 #include <exception>
@@ -85,28 +84,43 @@ public:
     return _array[index];
   }
 
+  T *array() const { return _array; }
+
   Matrix &operator=(const Matrix &m) {
-    //@todo
+    if (&m == this)
+      return *this;
+
+    if (_rows != m.rows() || _cols != m.cols()) {
+      dealloc();
+
+      _rows = m.rows();
+      _cols = m.cols();
+    }
+
+    alloc();
+    std::memcpy(_array, m.array(), size() * sizeof(T));
+    return *this;
   }
 
-  Matrix &operator+=(const Matrix &m) {
+  Matrix operator+=(const Matrix &m) {
     //@todo
   }
-
-  Matrix &operator-=(const Matrix &m) {
+  Matrix operator-=(const Matrix &m) {
     //@todo
   }
-
-  Matrix &operator*=(const Matrix &m) {
+  Matrix operator*=(const Matrix &m) {
     //@todo
   }
-
   Matrix &operator*=(const T &value) {
-    //@todo
+    for (auto i = size(); i-- > 0;)
+      _array[i] *= value;
+    return *this;
   }
 
   Matrix &operator/=(const T &value) {
-    //@todo
+    for (auto i = size(); i-- > 0;)
+      _array[i] /= value;
+    return *this;
   }
 
   bool operator==(const Matrix &m) const {
@@ -148,7 +162,47 @@ public:
     }
   }
 
-  Matrix transpose() { return M_OPERATION<T>::transpose(*this); }
+  Matrix transpose() {
+    Matrix rtn(_cols, _rows);
+    unsigned i = 0;
+    unsigned j = 0;
+    for (unsigned n = 0; n < size(); n++) {
+      i = n / _cols; // row index
+      j = n % _cols; // col index
+      rtn.at(j, i) = at(i, j);
+    }
+    return rtn;
+  }
+
+  Matrix multiplication(const T &value) {
+    Matrix rtn(_rows, _cols, _array);
+    for (auto i = size(); i-- > 0;)
+      rtn.array_access(i) *= value;
+
+    return rtn;
+  }
+
+  Matrix multiplication(const Matrix &m) {
+    //@todo
+  }
+
+  Matrix division(const T &value) {
+    Matrix rtn(_rows, _cols, _array);
+    for (auto i = size(); i-- > 0;)
+      rtn.array_access(i) /= value;
+
+    return rtn;
+  }
+  Matrix subtraction(const Matrix &m) {}
+  Matrix addition(const Matrix &m) {
+    //@todo
+  }
+  Matrix inverse() {
+    //@todo
+  }
+  Matrix determinant() {
+    //@todo
+  }
 
   void remove_row(unsigned row) {
     bound_check(row, _cols - 1);
@@ -199,7 +253,11 @@ public:
   void pop_front_row() { remove_row(0); }
 
   void reshape(unsigned rows, unsigned cols) {
-    //@todo
+    if ((rows * cols) != size())
+      throw std::invalid_argument("Incompatible shape");
+
+    _rows = rows;
+    _cols = cols;
   }
 
   void append_row(const std::initializer_list<T> &values) { insert_row(_rows, values); }
