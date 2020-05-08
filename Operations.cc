@@ -23,7 +23,7 @@ public:
   static Matrix<T> multiplication(const Matrix<T> &m1, const T &value) {}
   static Matrix<T> addition(const Matrix<T> &m1, const Matrix<T> &m2) {}
   static Matrix<T> subtraction(const Matrix<T> &m1, const Matrix<T> &m2) {}
-  static Matrix<T> determinant(const Matrix<T> &m1) {}
+  static T determinant(const Matrix<T> &m1) {}
 };
 #endif
 /***************************************************************************************************

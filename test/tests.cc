@@ -327,8 +327,38 @@ TEST_CASE("Matrix division", "[Matrix division]") {
   REQUIRE(a.at(1, 2) == 5);
 }
 
+TEST_CASE("Sum of Matrices", "[Sum of Matrices]") {
+  Matrix<int> a({{0, 1, 2}, {3, 4, 5}});
+  Matrix<int> b({{0, 1, 2}, {3, 4, 5}});
+  Matrix<int> c({{1, 2}, {4, 5}});
+
+  REQUIRE_THROWS(c += a);
+
+  a += b;
+  REQUIRE(a.at(0, 0) == 0);
+  REQUIRE(a.at(0, 1) == 2);
+  REQUIRE(a.at(0, 2) == 4);
+  REQUIRE(a.at(1, 0) == 6);
+  REQUIRE(a.at(1, 1) == 8);
+  REQUIRE(a.at(1, 2) == 10);
+}
+
+TEST_CASE("Subtraction of Matrices", "[Subtraction of Matrices]") {
+  Matrix<int> a({{0, 1, 2}, {3, 4, 5}});
+  Matrix<int> b({{0, 1, 2}, {3, 4, 5}});
+  Matrix<int> c({{1, 2}, {4, 5}});
+
+  REQUIRE_THROWS(c -= a);
+
+  a -= b;
+  REQUIRE(a.at(0, 0) == 0);
+  REQUIRE(a.at(0, 1) == 0);
+  REQUIRE(a.at(0, 2) == 0);
+  REQUIRE(a.at(1, 0) == 0);
+  REQUIRE(a.at(1, 1) == 0);
+  REQUIRE(a.at(1, 2) == 0);
+}
+
 TEST_CASE("Matrices multiplication", "[Matrices multiplication]") {}
-TEST_CASE("Sum of Matrices", "[Sum of Matrices]") {}
-TEST_CASE("Subtraction of Matrices", "[Subtraction of Matrices]") {}
 TEST_CASE("Matrix inverse", "[Matrix inverse]") {}
-TEST_CASE("Matrix determinant", "[Matrix inverse]") {}
+TEST_CASE("Matrix determinant", "[Matrix determinant]") {}

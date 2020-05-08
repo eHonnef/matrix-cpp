@@ -102,15 +102,32 @@ public:
     return *this;
   }
 
-  Matrix operator+=(const Matrix &m) {
-    //@todo
+  Matrix &operator+=(const Matrix &m) {
+    if (m.cols() != _cols || m.rows() != _rows)
+      throw std::invalid_argument(
+          "Two matrices must have an equal number of rows and columns to be added.");
+
+    for (auto i = size(); i-- > 0;)
+      _array[i] += m.array_access(i);
+
+    return *this;
   }
-  Matrix operator-=(const Matrix &m) {
-    //@todo
+
+  Matrix &operator-=(const Matrix &m) {
+    if (m.cols() != _cols || m.rows() != _rows)
+      throw std::invalid_argument(
+          "Two matrices must have an equal number of rows and columns to be added.");
+
+    for (auto i = size(); i-- > 0;)
+      _array[i] -= m.array_access(i);
+
+    return *this;
   }
+
   Matrix operator*=(const Matrix &m) {
     //@todo
   }
+
   Matrix &operator*=(const T &value) {
     for (auto i = size(); i-- > 0;)
       _array[i] *= value;
@@ -143,6 +160,13 @@ public:
   const Matrix &operator*(const Matrix &m) { return (*this *= m); }
   const Matrix &operator*(const T &value) { return (*this *= value); }
 
+  T determinant() {
+    if (_rows != _cols)
+      throw std::domain_error("Must be a square matrix.");
+    
+    //@todo
+  }
+
   void fill(const T &value) {
     // in the hope for a compiler optimization :D
     for (unsigned i = 0; i < size(); ++i)
@@ -172,36 +196,6 @@ public:
       rtn.at(j, i) = at(i, j);
     }
     return rtn;
-  }
-
-  Matrix multiplication(const T &value) {
-    Matrix rtn(_rows, _cols, _array);
-    for (auto i = size(); i-- > 0;)
-      rtn.array_access(i) *= value;
-
-    return rtn;
-  }
-
-  Matrix multiplication(const Matrix &m) {
-    //@todo
-  }
-
-  Matrix division(const T &value) {
-    Matrix rtn(_rows, _cols, _array);
-    for (auto i = size(); i-- > 0;)
-      rtn.array_access(i) /= value;
-
-    return rtn;
-  }
-  Matrix subtraction(const Matrix &m) {}
-  Matrix addition(const Matrix &m) {
-    //@todo
-  }
-  Matrix inverse() {
-    //@todo
-  }
-  Matrix determinant() {
-    //@todo
   }
 
   void remove_row(unsigned row) {
