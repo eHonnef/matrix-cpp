@@ -189,25 +189,6 @@ public:
     return rtn;
   }
 
-  // T determinant() {
-  //   unsigned indexes[_rows];
-  //   for (auto i = _rows; i-- > 0;)
-  //     indexes[i] = i;
-
-  //   T det = T();
-  //   do {
-  //     T factor = signal(indexes);
-
-  //     for (unsigned i = 0; i < _rows; ++i)
-  //       factor *= at(i, indexes[i]);
-
-  //     det += factor;
-
-  //   } while (std::next_permutation(indexes, indexes + (_rows)));
-
-  //   return det;
-  // }
-
   void fill(const T &value) {
     // in the hope for a compiler optimization :D
     for (unsigned i = 0; i < size(); ++i)
@@ -239,7 +220,7 @@ public:
     return rtn;
   }
 
-  T determinant() { return 0; }
+  T determinant() { return determinant(*this); }
 
   Matrix u_triangular() {
     if (_rows != _cols)
@@ -259,7 +240,7 @@ public:
 
     Matrix rtn(_rows, _cols);
     for (unsigned i = 0; i < _rows; ++i)
-      for (unsigned j = 0; j < (i+1); ++j)
+      for (unsigned j = 0; j < (i + 1); ++j)
         rtn.at(i, j) = at(i, j);
 
     return rtn;
@@ -421,15 +402,35 @@ private:
       throw std::out_of_range("out of range");
   }
 
-  // int signal(unsigned const *indexes) {
-  //   int sum = 0;
-  //   for (unsigned i = 0; i < _rows; ++i)
-  //     for (unsigned j = i; j < _rows; ++j)
-  //       if (indexes[i] > indexes[j])
-  //         sum++;
+  T determinant(const Matrix &m) {
+    // Laplace method, very bad performance
+    if (m.rows() == 1)
+      return m.array_access(0);
 
-  //   return sum % 2 == 0 ? 1 : -1;
-  // }
+    T det = T();
+    unsigned N = m.rows(); // _rows == _cols
+    Matrix sub_matrix(N - 1, N - 1);
+
+    for (unsigned i = 0; i < N; ++i) {
+      for (unsigned k = 1; k < N; ++k) {
+        unsigned b = 0;
+
+        for (unsigned j = 0; j < N; ++j) {
+          if (j == i)
+            continue;
+
+          sub_matrix.at(k - 1, b++) = m.at(k, j);
+        }
+      }
+
+      int sign;
+      i % 2 == 0 ? sign = 1 : sign = -1;
+
+      det += sign * m.at(0, i) * determinant(sub_matrix);
+    }
+
+    return det;
+  }
 };
 /***************************************************************************************************
  *

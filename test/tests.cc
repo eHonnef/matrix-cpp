@@ -406,11 +406,11 @@ TEST_CASE("Matrix determinant", "[Matrix determinant]") {
   Matrix<int> a({{1, 1, 2}, {3, 4, 5}, {6, 7, 8}});
   REQUIRE(a.determinant() == -3);
 
-  Matrix<int> b(20, 20);
-  for (auto i = b.size(); i-- > 0;)
-    b.array_access(i) = i + 1;
+  // Matrix<int> b(20, 20);
+  // for (auto i = b.size(); i-- > 0;)
+  //   b.array_access(i) = i + 1;
 
-  REQUIRE(b.determinant() == -5e-245);
+  // REQUIRE(b.determinant() == -5e-245);
 }
 
 TEST_CASE("Matrix inverse", "[Matrix inverse]") {}
