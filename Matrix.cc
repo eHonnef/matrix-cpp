@@ -15,12 +15,22 @@
 
 template <class T> class Matrix {
 public:
+  Matrix() = default;
+
   Matrix(unsigned rows, unsigned cols, T init_val = T()) {
     _rows = rows;
     _cols = cols;
     alloc();
 
     fill(init_val);
+  }
+
+  Matrix(const Matrix &m) {
+    _rows = m.rows();
+    _cols = m.cols();
+    alloc();
+
+    std::memcpy(_array, m.array(), size() * sizeof(T));
   }
 
   Matrix(const std::initializer_list<std::initializer_list<T>> &init) {
@@ -47,7 +57,7 @@ public:
     _cols = cols;
     alloc();
 
-    std::memmove(_array, array, rows * cols * sizeof(T));
+    std::memcpy(_array, array, rows * cols * sizeof(T));
   }
 
   ~Matrix() { dealloc(); }
@@ -95,50 +105,19 @@ public:
 
       _rows = m.rows();
       _cols = m.cols();
+
+      alloc();
     }
 
-    alloc();
     std::memcpy(_array, m.array(), size() * sizeof(T));
     return *this;
   }
 
-  Matrix &operator+=(const Matrix &m) {
-    if (m.cols() != _cols || m.rows() != _rows)
-      throw std::invalid_argument(
-          "Two matrices must have an equal number of rows and columns to be added.");
-
-    for (auto i = size(); i-- > 0;)
-      _array[i] += m.array_access(i);
-
-    return *this;
-  }
-
-  Matrix &operator-=(const Matrix &m) {
-    if (m.cols() != _cols || m.rows() != _rows)
-      throw std::invalid_argument(
-          "Two matrices must have an equal number of rows and columns to be added.");
-
-    for (auto i = size(); i-- > 0;)
-      _array[i] -= m.array_access(i);
-
-    return *this;
-  }
-
-  Matrix operator*=(const Matrix &m) {
-    //@todo
-  }
-
-  Matrix &operator*=(const T &value) {
-    for (auto i = size(); i-- > 0;)
-      _array[i] *= value;
-    return *this;
-  }
-
-  Matrix &operator/=(const T &value) {
-    for (auto i = size(); i-- > 0;)
-      _array[i] /= value;
-    return *this;
-  }
+  Matrix &operator+=(const Matrix &m) { return (*this = *this + m); }
+  Matrix &operator-=(const Matrix &m) { return (*this = *this - m); }
+  Matrix &operator*=(const Matrix &m) { return (*this = *this * m); }
+  Matrix &operator*=(const T &value) { return (*this = *this * value); }
+  Matrix &operator/=(const T &value) { return (*this = *this / value); }
 
   bool operator==(const Matrix &m) const {
     if (m.rows() != _rows)
@@ -155,15 +134,65 @@ public:
   }
 
   bool operator!=(const Matrix &m) const { return !(*this == m); }
-  const Matrix &operator+(const Matrix &m) { return (*this += m); }
-  const Matrix &operator-(const Matrix &m) { return (*this -= m); }
-  const Matrix &operator*(const Matrix &m) { return (*this *= m); }
-  const Matrix &operator*(const T &value) { return (*this *= value); }
+
+  Matrix operator+(const Matrix &m) {
+    if (m.cols() != _cols || m.rows() != _rows)
+      throw std::invalid_argument(
+          "Two matrices must have an equal number of rows and columns to be added.");
+
+    Matrix rtn(*this);
+    for (auto i = size(); i-- > 0;)
+      rtn.array_access(i) += m.array_access(i);
+
+    return rtn;
+  }
+
+  Matrix operator-(const Matrix &m) {
+    if (m.cols() != _cols || m.rows() != _rows)
+      throw std::invalid_argument(
+          "Two matrices must have an equal number of rows and columns to be added.");
+
+    Matrix rtn(*this);
+    for (auto i = size(); i-- > 0;)
+      rtn.array_access(i) -= m.array_access(i);
+
+    return rtn;
+  }
+
+  Matrix operator*(const Matrix &m) {
+    // naive method
+    if (_cols != m.rows())
+      throw std::invalid_argument("Number of cols must be equal to rows.");
+
+    Matrix rtn = Matrix(_rows, m.cols());
+    for (unsigned i = 0; i < rtn.rows(); ++i)
+      for (unsigned j = 0; j < rtn.cols(); ++j)
+        for (unsigned k = 0; k < _cols; ++k)
+          rtn.at(i, j) += (_array[index(i, k)] * m.at(k, j));
+
+    return rtn;
+  }
+
+  Matrix operator*(const T &value) {
+    Matrix rtn = Matrix(*this);
+    for (auto i = size(); i-- > 0;)
+      rtn.array_access(i) *= value;
+
+    return rtn;
+  }
+
+  Matrix operator/(const T &value) {
+    Matrix rtn = Matrix(*this);
+    for (auto i = size(); i-- > 0;)
+      rtn.array_access(i) /= value;
+
+    return rtn;
+  }
 
   T determinant() {
     if (_rows != _cols)
       throw std::domain_error("Must be a square matrix.");
-    
+
     //@todo
   }
 
@@ -324,7 +353,7 @@ public:
   }
 
 private:
-  T *_array;
+  T *_array = nullptr;
   unsigned _rows;
   unsigned _cols;
 
@@ -333,8 +362,10 @@ private:
   void alloc() { _array = new T[_rows * _cols]; }
 
   void dealloc() {
-    delete[] _array;
-    _array = nullptr;
+    if (_array != nullptr) {
+      delete[] _array;
+      _array = nullptr;
+    }
   }
 
   void bound_check(unsigned row, unsigned col) {

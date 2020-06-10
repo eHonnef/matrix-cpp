@@ -359,6 +359,22 @@ TEST_CASE("Subtraction of Matrices", "[Subtraction of Matrices]") {
   REQUIRE(a.at(1, 2) == 0);
 }
 
-TEST_CASE("Matrices multiplication", "[Matrices multiplication]") {}
+TEST_CASE("Matrices multiplication", "[Matrices multiplication]") {
+  Matrix<int> a({{0, 1, 2}, {3, 4, 5}, {6, 7, 8}});
+  Matrix<int> b({{0},{1},{2}});
+  Matrix<int> c = a * b;
+
+  REQUIRE(c.at(0, 0) == 5);
+  REQUIRE(c.at(1, 0) == 14);
+  REQUIRE(c.at(2, 0) == 23);
+
+  a *= b;
+  REQUIRE(a.at(0, 0) == 5);
+  REQUIRE(a.at(1, 0) == 14);
+  REQUIRE(a.at(2, 0) == 23);
+
+  REQUIRE_THROWS(a *= b);
+}
+
 TEST_CASE("Matrix inverse", "[Matrix inverse]") {}
 TEST_CASE("Matrix determinant", "[Matrix determinant]") {}
