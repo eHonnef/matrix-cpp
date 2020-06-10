@@ -361,7 +361,7 @@ TEST_CASE("Subtraction of Matrices", "[Subtraction of Matrices]") {
 
 TEST_CASE("Matrices multiplication", "[Matrices multiplication]") {
   Matrix<int> a({{0, 1, 2}, {3, 4, 5}, {6, 7, 8}});
-  Matrix<int> b({{0},{1},{2}});
+  Matrix<int> b({{0}, {1}, {2}});
   Matrix<int> c = a * b;
 
   REQUIRE(c.at(0, 0) == 5);
@@ -376,5 +376,41 @@ TEST_CASE("Matrices multiplication", "[Matrices multiplication]") {
   REQUIRE_THROWS(a *= b);
 }
 
+TEST_CASE("Upper triangular matrix", "[Upper triangular matrix]") {
+  Matrix<int> a(10, 10, 7);
+
+  a = a.u_triangular();
+  for (auto i = a.rows(); i-- > 0;)
+    for (auto j = i; j-- > i;)
+      REQUIRE(a.at(i, j) == 7);
+
+  for (unsigned i = 1; i < a.rows(); ++i)
+    for (unsigned j = 0; j < i; ++j)
+      REQUIRE(a.at(i, j) == 0);
+}
+
+TEST_CASE("Lower triangular matrix", "[Lower triangular matrix]") {
+  Matrix<int> a(10, 10, 7);
+
+  a = a.l_triangular();
+  for (auto i = a.rows(); i-- > 0;)
+    for (auto j = i; j-- > i;)
+      REQUIRE(a.at(i, j) == 0);
+
+  for (unsigned i = 1; i < a.rows(); ++i)
+    for (unsigned j = 0; j < i; ++j)
+      REQUIRE(a.at(i, j) == 7);
+}
+
+TEST_CASE("Matrix determinant", "[Matrix determinant]") {
+  Matrix<int> a({{1, 1, 2}, {3, 4, 5}, {6, 7, 8}});
+  REQUIRE(a.determinant() == -3);
+
+  Matrix<int> b(20, 20);
+  for (auto i = b.size(); i-- > 0;)
+    b.array_access(i) = i + 1;
+
+  REQUIRE(b.determinant() == -5e-245);
+}
+
 TEST_CASE("Matrix inverse", "[Matrix inverse]") {}
-TEST_CASE("Matrix determinant", "[Matrix determinant]") {}

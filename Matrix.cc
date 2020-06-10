@@ -137,7 +137,7 @@ public:
 
   Matrix operator+(const Matrix &m) {
     if (m.cols() != _cols || m.rows() != _rows)
-      throw std::invalid_argument(
+      throw std::domain_error(
           "Two matrices must have an equal number of rows and columns to be added.");
 
     Matrix rtn(*this);
@@ -149,7 +149,7 @@ public:
 
   Matrix operator-(const Matrix &m) {
     if (m.cols() != _cols || m.rows() != _rows)
-      throw std::invalid_argument(
+      throw std::domain_error(
           "Two matrices must have an equal number of rows and columns to be added.");
 
     Matrix rtn(*this);
@@ -189,12 +189,24 @@ public:
     return rtn;
   }
 
-  T determinant() {
-    if (_rows != _cols)
-      throw std::domain_error("Must be a square matrix.");
+  // T determinant() {
+  //   unsigned indexes[_rows];
+  //   for (auto i = _rows; i-- > 0;)
+  //     indexes[i] = i;
 
-    //@todo
-  }
+  //   T det = T();
+  //   do {
+  //     T factor = signal(indexes);
+
+  //     for (unsigned i = 0; i < _rows; ++i)
+  //       factor *= at(i, indexes[i]);
+
+  //     det += factor;
+
+  //   } while (std::next_permutation(indexes, indexes + (_rows)));
+
+  //   return det;
+  // }
 
   void fill(const T &value) {
     // in the hope for a compiler optimization :D
@@ -224,6 +236,32 @@ public:
       j = n % _cols; // col index
       rtn.at(j, i) = at(i, j);
     }
+    return rtn;
+  }
+
+  T determinant() { return 0; }
+
+  Matrix u_triangular() {
+    if (_rows != _cols)
+      throw std::domain_error("The Row number must be equals to col number");
+
+    Matrix rtn(_rows, _cols);
+    for (unsigned i = 0; i < _rows; ++i)
+      for (unsigned j = i; j < _cols; ++j)
+        rtn.at(i, j) = at(i, j);
+
+    return rtn;
+  }
+
+  Matrix l_triangular() {
+    if (_rows != _cols)
+      throw std::domain_error("The Row number must be equals to col number");
+
+    Matrix rtn(_rows, _cols);
+    for (unsigned i = 0; i < _rows; ++i)
+      for (unsigned j = 0; j < (i+1); ++j)
+        rtn.at(i, j) = at(i, j);
+
     return rtn;
   }
 
@@ -359,7 +397,12 @@ private:
 
   unsigned index(unsigned row, unsigned col) const { return row * _cols + col; }
 
-  void alloc() { _array = new T[_rows * _cols]; }
+  void alloc() {
+    if (_array != nullptr)
+      dealloc();
+
+    _array = new T[_rows * _cols];
+  }
 
   void dealloc() {
     if (_array != nullptr) {
@@ -377,6 +420,16 @@ private:
     if (index >= size())
       throw std::out_of_range("out of range");
   }
+
+  // int signal(unsigned const *indexes) {
+  //   int sum = 0;
+  //   for (unsigned i = 0; i < _rows; ++i)
+  //     for (unsigned j = i; j < _rows; ++j)
+  //       if (indexes[i] > indexes[j])
+  //         sum++;
+
+  //   return sum % 2 == 0 ? 1 : -1;
+  // }
 };
 /***************************************************************************************************
  *
