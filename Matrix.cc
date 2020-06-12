@@ -208,42 +208,33 @@ public:
     }
   }
 
-  Matrix transpose() {
-    Matrix rtn(_cols, _rows);
-    unsigned i = 0;
-    unsigned j = 0;
-    for (unsigned n = 0; n < size(); n++) {
-      i = n / _cols; // row index
-      j = n % _cols; // col index
-      rtn.at(j, i) = at(i, j);
+  void swap_rows(unsigned row_a, unsigned row_b) {
+    bound_check(row_a, 0);
+    bound_check(row_b, 0);
+
+    T tmp[_cols];
+
+    // save row_b to tmp array
+    std::memcpy(&tmp, _array + (row_b * _cols), sizeof(T) * _cols);
+
+    // copy row_a to row_b
+    std::memcpy(_array + (row_b * _cols), _array + (row_a * _cols), sizeof(T) * _cols);
+
+    // copy tmp to row_a location
+    std::memcpy(_array + (row_a * _cols), &tmp, sizeof(T) * _cols);
+  }
+
+  void swap_cols(unsigned col_a, unsigned col_b) {
+    bound_check(0, col_a);
+    bound_check(0, col_b);
+
+    // since the matrix is stored in a row major array, it doesn't make sense to use memcpy
+    T tmp;
+    for (unsigned i = 0; i < _rows; ++i) {
+      tmp = _array[index(i, col_b)];
+      _array[index(i, col_b)] = _array[index(i, col_a)];
+      _array[index(i, col_a)] = tmp;
     }
-    return rtn;
-  }
-
-  T determinant() { return determinant(*this); }
-
-  Matrix u_triangular() {
-    if (_rows != _cols)
-      throw std::domain_error("The Row number must be equals to col number");
-
-    Matrix rtn(_rows, _cols);
-    for (unsigned i = 0; i < _rows; ++i)
-      for (unsigned j = i; j < _cols; ++j)
-        rtn.at(i, j) = at(i, j);
-
-    return rtn;
-  }
-
-  Matrix l_triangular() {
-    if (_rows != _cols)
-      throw std::domain_error("The Row number must be equals to col number");
-
-    Matrix rtn(_rows, _cols);
-    for (unsigned i = 0; i < _rows; ++i)
-      for (unsigned j = 0; j < (i + 1); ++j)
-        rtn.at(i, j) = at(i, j);
-
-    return rtn;
   }
 
   void remove_row(unsigned row) {
@@ -400,36 +391,6 @@ private:
   void bound_check(unsigned index) {
     if (index >= size())
       throw std::out_of_range("out of range");
-  }
-
-  T determinant(const Matrix &m) {
-    // Laplace method, very bad performance
-    if (m.rows() == 1)
-      return m.array_access(0);
-
-    T det = T();
-    unsigned N = m.rows(); // _rows == _cols
-    Matrix sub_matrix(N - 1, N - 1);
-
-    for (unsigned i = 0; i < N; ++i) {
-      for (unsigned k = 1; k < N; ++k) {
-        unsigned b = 0;
-
-        for (unsigned j = 0; j < N; ++j) {
-          if (j == i)
-            continue;
-
-          sub_matrix.at(k - 1, b++) = m.at(k, j);
-        }
-      }
-
-      int sign;
-      i % 2 == 0 ? sign = 1 : sign = -1;
-
-      det += sign * m.at(0, i) * determinant(sub_matrix);
-    }
-
-    return det;
   }
 };
 /***************************************************************************************************
