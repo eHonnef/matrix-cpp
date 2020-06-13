@@ -9,6 +9,9 @@
 
 class M_OPERATION {
 public:
+  /*
+   * Returns the transpose of m.
+   */
   template <typename T> static Matrix<T> transpose(const Matrix<T> &m) {
     Matrix<T> rtn(m.cols(), m.rows());
 
@@ -21,7 +24,9 @@ public:
     }
     return rtn;
   }
-
+  /*
+   * Returns the upper triangular matrix of m.
+   */
   template <typename T> static Matrix<T> u_triangular(const Matrix<T> &m) {
     if (m.rows() != m.cols())
       throw std::domain_error("The Row number must be equals to col number");
@@ -33,7 +38,9 @@ public:
 
     return rtn;
   }
-
+  /*
+   * Returns the lower triangular matrix of m.
+   */
   template <typename T> static Matrix<T> l_triangular(const Matrix<T> &m) {
     if (m.rows() != m.cols())
       throw std::domain_error("The Row number must be equals to col number");
@@ -45,9 +52,13 @@ public:
 
     return rtn;
   }
-
+  /*
+   * Decomposes m to the matrices L, U and P.
+   * L, U, P must be the same dimension.
+   * It'll change the L, U and P matrices.
+   */
   template <typename T>
-  static void LUP_decomposition(const Matrix<T> &m, Matrix<T> &L, Matrix<T> &U, Matrix<T> &P) {
+  static void LUP_decompose(const Matrix<T> &m, Matrix<T> &L, Matrix<T> &U, Matrix<T> &P) {
     // not very efficient
     if (m.rows() != m.cols())
       throw std::domain_error("The Row number must be equals to col number");
@@ -73,28 +84,36 @@ public:
     }
   }
 
-  template <typename T> static T determinant(const Matrix<T> &m) {
-    // adapted from wikipedia:LU_decomposition#C_code_examples
-    // keep in mind that T should be a double, you'll get the wrong result if it is an integer.
+  /*
+   * Matrix LU is changed, it contains a copy of both matrices L-E and U as A=(L-E)+U such that
+   * P*A=L*U.
+   * It returns the P matrix.
+   * It was adapted from https://en.wikipedia.org/wiki/LU_decomposition
+   */
+  template <typename T> static Matrix<unsigned> LUP_compact(const Matrix<T> &m, Matrix<T> &LU) {
+    // @todo: find a better algorithm
+
     if (m.rows() != m.cols())
       throw std::domain_error("The Row number must be equals to col number");
 
     unsigned i, j, k, iMax;
     unsigned N = m.rows();
-    unsigned P[N + 1];
+
     double maxA, absA;
     double Tol = 0.01;
-    Matrix<T> A = m;
+
+    Matrix<unsigned> P(N + 1, 1);
+    LU = m;
 
     for (auto i = N + 1; i-- > 0;)
-      P[i] = i;
+      P.at(i, 0) = i;
 
     for (i = 0; i < N; ++i) {
       maxA = 0;
       iMax = i;
 
       for (k = i; k < N; ++k)
-        if ((absA = fabs(A.at(k, i))) > maxA) {
+        if ((absA = fabs(LU.at(k, i))) > maxA) {
           maxA = absA;
           iMax = k;
         }
@@ -104,37 +123,88 @@ public:
 
       if (iMax != i) {
         // pivoting P
-        j = P[i];
-        P[i] = P[iMax];
-        P[iMax] = j;
+        P.swap_rows(i, iMax);
 
         // pivoting A
-        A.swap_rows(i, iMax);
+        LU.swap_rows(i, iMax);
 
         // counting pivots (for determinant)
-        P[N]++;
+        P.at(N, 0)++;
       }
 
       for (j = i + 1; j < N; ++j) {
-        A.at(j, i) /= A.at(i, i);
+        LU.at(j, i) /= LU.at(i, i);
 
         for (k = i + 1; k < N; ++k)
-          A.at(j, k) -= A.at(j, i) * A.at(i, k);
+          LU.at(j, k) -= LU.at(j, i) * LU.at(i, k);
       }
     }
 
-    T det = A.at(0, 0);
+    return P;
+  }
+  /*
+   * Returns the determinant of the NxN matrix m.
+   * It uses the LU decomposition to calculate the determinant.
+   * Adapted from wikipedia:LU_decomposition.
+   * keep in mind that T should be a double, you'll get the wrong result if it is an integer.
+   */
+  template <typename T> static T determinant(const Matrix<T> &m) {
+    // @todo: fix this after fixing the compact LU
+    if (m.rows() != m.cols())
+      throw std::domain_error("The Row number must be equals to col number");
 
-    for (i = 1; i < N; ++i)
-      det *= A.at(i, i);
+    Matrix<T> LU(m.rows(), m.cols());
+    Matrix<unsigned> P = LUP_compact(m, LU);
+    unsigned N = m.rows();
+    T det = LU.at(0, 0);
 
-    if ((P[N] - N) % 2 == 0)
+    for (unsigned i = 1; i < N; ++i)
+      det *= LU.at(i, i);
+
+    if ((P.at(N, 0) - N) % 2 == 0)
       return det;
     else
       return -det;
   }
+  /*
+   * Returns the inverse matrix of m.
+   */
+  template <typename T> static Matrix<T> inverse(const Matrix<T> &m) {
+    //@todo: it's wrong
+    // if (m.rows() != m.cols())
+    //   throw std::domain_error("The Row number must be equals to col number");
 
-  // static Matrix<T> inverse(const Matrix<T> &m) {}
+    // Matrix<T> LU(m.rows(), m.cols());
+    // Matrix<unsigned> P = LUP_compact(m, LU);
+    // Matrix<T> rtn(m.rows(), m.cols());
+
+    // int i, j, k;
+    // int N = m.rows();
+
+    // for (j = 0; j < N; ++j) {
+    //   for (i = 0; i < N; ++i) {
+    //     if (P.at(i, 0) == (unsigned) j)
+    //       rtn.at(i, j) = 1;
+    //     else
+    //       rtn.at(i, j) = 0;
+
+    //     for (k = 0; k < i; ++k)
+    //       rtn.at(i, j) -= LU.at(i, k) * LU.at(k, j);
+    //   }
+
+    //   for (i = N - 1; i >= 0; --i) {
+    //     for (k = i + 1; k < N; ++k)
+    //       rtn.at(i, j) -= LU.at(i, k) * LU.at(k, j);
+
+    //     rtn.at(i, j) = rtn.at(i, j) / LU.at(i, i);
+    //   }
+    // }
+
+    // return rtn;
+  }
+  /*
+   * Returns the result of the multiplication of m1 * m2
+   */
   template <typename T> static Matrix<T> multiplication(const Matrix<T> &m1, const Matrix<T> &m2) {
     // @todo
     // naive method for now
@@ -149,11 +219,28 @@ public:
 
     return rtn;
   }
+  /*
+   * Returns an identity matrix.
+   */
+  template <typename T> static Matrix<T> identity(unsigned dimension) {
+    if (dimension > 0)
+      throw std::invalid_argument("Can't be 0.");
+
+    Matrix<T> rtn(rows, cols, T(0));
+    for (auto i = rows; i-- > 0;)
+      rtn.at(i, i) = 1;
+
+    return rtn;
+  }
+
   // static Matrix<T> multiplication(const Matrix<T> &m1, const T &value) {}
   // static Matrix<T> addition(const Matrix<T> &m1, const Matrix<T> &m2) {}
   // static Matrix<T> subtraction(const Matrix<T> &m1, const Matrix<T> &m2) {}
   // static T determinant(const Matrix<T> &m1) {}
 private:
+  /*
+   * Returns the pivot matrix of m.
+   */
   template <typename T> static Matrix<T> pivot(const Matrix<T> &m) {
     unsigned N = m.rows();
     unsigned P[N];

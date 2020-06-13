@@ -120,6 +120,7 @@ public:
   Matrix &operator/=(const T &value) { return (*this = *this / value); }
 
   bool operator==(const Matrix &m) const {
+    // @todo: improve this to compare doubles
     if (m.rows() != _rows)
       return false;
     else if (m.cols() != _cols)

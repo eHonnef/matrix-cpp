@@ -50,7 +50,7 @@ TEST_CASE("LU decomposition", "[LU decomposition]") {
   Matrix<double> U(a.rows(), a.cols());
   Matrix<double> P(a.rows(), a.cols());
 
-  M_OPERATION::LUP_decomposition(a, L, U, P);
+  M_OPERATION::LUP_decompose(a, L, U, P);
 
   REQUIRE(L.at(0, 0) == Approx(1));
   REQUIRE(L.at(0, 1) == Approx(0));
@@ -88,4 +88,49 @@ TEST_CASE("Matrix determinant", "[Matrix determinant]") {
   REQUIRE(M_OPERATION::determinant(a) == Approx(-3.0));
 }
 
-TEST_CASE("Matrix inverse", "[Matrix inverse]") {}
+TEST_CASE("Identity Matrix", "[Identity Matrix]") {
+  Matrix<int> a = M_OPERATION::identity<int>(10);
+
+  for (auto i = 0; i < 10; ++i) {
+    for (auto j = 0; j < 10; ++j) {
+      if (i == j)
+        REQUIRE(a.at(i, j) == 1);
+      else
+        REQUIRE(a.at(i, j) == 0);
+    }
+  }
+}
+
+TEST_CASE("Inverse Matrix", "[Inverse Matrix]") {
+  Matrix<double> a({{1, 2, 3}, {0, 1, 4}, {5, 6, 0}});
+  a = M_OPERATION::inverse(a);
+
+  REQUIRE(a.at(0, 0) == Approx(-24));
+  REQUIRE(a.at(0, 1) == Approx(18));
+  REQUIRE(a.at(0, 2) == Approx(5));
+  REQUIRE(a.at(1, 0) == Approx(20));
+  REQUIRE(a.at(1, 1) == Approx(-15));
+  REQUIRE(a.at(1, 2) == Approx(-4));
+  REQUIRE(a.at(2, 0) == Approx(-5));
+  REQUIRE(a.at(2, 1) == Approx(4));
+  REQUIRE(a.at(2, 2) == Approx(1));
+}
+
+TEST_CASE("Further LU decomposition test", "[Further LU decomposition test]") {
+  // PA = LU
+  // det(A) == det(LU) == det(L'U')
+  Matrix<double> A({{2, 7, 6, 2}, {9, 5, 1, 3}, {4, 3, 8, 4}, {5, 6, 7, 8}});
+  Matrix<double> L(A.rows(), A.cols());
+  Matrix<double> U(A.rows(), A.cols());
+  Matrix<double> P(A.rows(), A.cols());
+
+  M_OPERATION::LUP_decompose(A, L, U, P);
+  Matrix<double> b = M_OPERATION::multiplication(L, U);
+  Matrix<double> c = M_OPERATION::multiplication(P, A);
+  Matrix<double> d = M_OPERATION::multiplication(M_OPERATION::inverse(L), M_OPERATION::inverse(U));
+
+  // REQUIRE(c == b); @todo: change the matrix operator==
+  REQUIRE(M_OPERATION::determinant(A) == Approx(M_OPERATION::determinant(b)));
+  REQUIRE(M_OPERATION::determinant(d) == Approx(M_OPERATION::determinant(A)));
+  REQUIRE(M_OPERATION::determinant(d) == Approx(M_OPERATION::determinant(c)));
+}
