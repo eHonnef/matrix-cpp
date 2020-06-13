@@ -211,7 +211,6 @@ public:
   void swap_rows(unsigned row_a, unsigned row_b) {
     bound_check(row_a, 0);
     bound_check(row_b, 0);
-
     T tmp[_cols];
 
     // save row_b to tmp array

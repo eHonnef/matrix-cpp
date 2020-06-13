@@ -44,15 +44,48 @@ TEST_CASE("Lower triangular matrix", "[Lower triangular matrix]") {
       REQUIRE(a.at(i, j) == 7);
 }
 
+TEST_CASE("LU decomposition", "[LU decomposition]") {
+  Matrix<double> a({{1, 3, 5}, {2, 4, 7}, {1, 1, 0}});
+  Matrix<double> L(a.rows(), a.cols());
+  Matrix<double> U(a.rows(), a.cols());
+  Matrix<double> P(a.rows(), a.cols());
+
+  M_OPERATION::LUP_decomposition(a, L, U, P);
+
+  REQUIRE(L.at(0, 0) == Approx(1));
+  REQUIRE(L.at(0, 1) == Approx(0));
+  REQUIRE(L.at(0, 2) == Approx(0));
+  REQUIRE(L.at(1, 0) == Approx(0.5));
+  REQUIRE(L.at(1, 1) == Approx(1));
+  REQUIRE(L.at(1, 2) == Approx(0));
+  REQUIRE(L.at(2, 0) == Approx(0.5));
+  REQUIRE(L.at(2, 1) == Approx(-1));
+  REQUIRE(L.at(2, 2) == Approx(1));
+
+  REQUIRE(U.at(0, 0) == Approx(2));
+  REQUIRE(U.at(0, 1) == Approx(4));
+  REQUIRE(U.at(0, 2) == Approx(7));
+  REQUIRE(U.at(1, 0) == Approx(0));
+  REQUIRE(U.at(1, 1) == Approx(1));
+  REQUIRE(U.at(1, 2) == Approx(1.5));
+  REQUIRE(U.at(2, 0) == Approx(0));
+  REQUIRE(U.at(2, 1) == Approx(0));
+  REQUIRE(U.at(2, 2) == Approx(-2));
+
+  REQUIRE(P.at(0, 0) == Approx(0));
+  REQUIRE(P.at(0, 1) == Approx(1));
+  REQUIRE(P.at(0, 2) == Approx(0));
+  REQUIRE(P.at(1, 0) == Approx(1));
+  REQUIRE(P.at(1, 1) == Approx(0));
+  REQUIRE(P.at(1, 2) == Approx(0));
+  REQUIRE(P.at(2, 0) == Approx(0));
+  REQUIRE(P.at(2, 1) == Approx(0));
+  REQUIRE(P.at(2, 2) == Approx(1));
+}
+
 TEST_CASE("Matrix determinant", "[Matrix determinant]") {
-  Matrix<int> a({{1, 1, 2}, {3, 4, 5}, {6, 7, 8}});
-  REQUIRE(M_OPERATION::determinant(a) == -3);
-
-  // Matrix<int> b(20, 20);
-  // for (auto i = b.size(); i-- > 0;)
-  //   b.array_access(i) = i + 1;
-
-  // REQUIRE(b.determinant() == -5e-245);
+  Matrix<double> a({{1, 1, 2}, {3, 4, 5}, {6, 7, 8}});
+  REQUIRE(M_OPERATION::determinant(a) == Approx(-3.0));
 }
 
 TEST_CASE("Matrix inverse", "[Matrix inverse]") {}
