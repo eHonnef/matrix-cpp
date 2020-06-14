@@ -197,6 +197,7 @@ public:
   }
 
   void print() {
+    // @todo: improve the print for the double
     std::cout << "Rows: " << _rows << std::endl;
     std::cout << "Cols: " << _cols << std::endl;
 
@@ -364,8 +365,8 @@ public:
 
 private:
   T *_array = nullptr;
-  unsigned _rows;
-  unsigned _cols;
+  unsigned _rows = 0;
+  unsigned _cols = 0;
 
   unsigned index(unsigned row, unsigned col) const { return row * _cols + col; }
 
