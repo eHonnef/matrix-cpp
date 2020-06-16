@@ -197,14 +197,15 @@ public:
   }
 
   void print() {
-    // @todo: improve the print for the double
     std::cout << "Rows: " << _rows << std::endl;
     std::cout << "Cols: " << _cols << std::endl;
 
+    std::cout.precision(5);
+
     for (unsigned i = 0; i < _rows; i++) {
-      std::cout << std::setw(3);
+      std::cout << std::setw(10);
       for (unsigned j = 0; j < _cols; j++)
-        std::cout << _array[index(i, j)] << std::setw(3);
+        std::cout << _array[index(i, j)] << std::setw(10);
 
       std::cout << std::endl;
     }
