@@ -26,6 +26,7 @@ public:
   }
   /*
    * Returns the upper triangular matrix of m.
+   * Matrix m must be square.
    */
   template <typename T> static Matrix<T> u_triangular(const Matrix<T> &m) {
     if (m.rows() != m.cols())
@@ -40,6 +41,7 @@ public:
   }
   /*
    * Returns the lower triangular matrix of m.
+   * Matrix m must be square.
    */
   template <typename T> static Matrix<T> l_triangular(const Matrix<T> &m) {
     if (m.rows() != m.cols())
@@ -65,17 +67,11 @@ public:
     return p;
   }
   /*
-   * Decomposes m into L and U using Cholesky's method. It'll only works in a positive-definite
-   * symmetrical matrix.
-   * It'll change the LU matrix.
-   */
-  template <typename T> static void LU_cholesky(const Matrix<T> &m, Matrix<T> &LU) {
-    //@todo
-  }
-  /*
    * Decomposes m into L and U using Crout's method with partial pivoting.
-   * It'll change the LU matrix.
-   * Returns the pivot matrix.
+   * Matrices m and LU needs to be the same dimension.
+   * It'll change the LU matrix param.
+   * Returns the pivot vector, it is a 1x(N+1) matrix, where the element N+1 is the number of
+   * row exchanges needed for determinant calculation.
    * Probably it'll give the wrong result if T isn't a double or float.
    */
   template <typename T> static Matrix<int> LUP_crout(const Matrix<T> &m, Matrix<T> &LU) {
@@ -93,11 +89,12 @@ public:
     unsigned N = m.rows();
     // row index of max value
     unsigned i_max;
-    // aux for pivoting
-    T max_val, abs_val;
+    // aux
+    T max_val, abs_val, sum;
     // pivot array
     Matrix<int> pivot(1, N + 1);
 
+    // filling pivot
     for (i = 0; i <= N; ++i)
       pivot.at(0, i) = i;
 
@@ -105,6 +102,7 @@ public:
       max_val = 0;
       i_max = k;
 
+      // checking if it's needed to pivot some row
       for (i = k; i < N; ++i) {
         if ((abs_val = fabs(LU.at(i, k))) > max_val) {
           max_val = abs_val;
@@ -112,6 +110,7 @@ public:
         }
       }
 
+      // swap rows
       if (i_max != k) {
         pivot.swap_cols(k, i_max);
         pivot.at(0, N) += 1;
@@ -119,19 +118,16 @@ public:
       }
 
       for (i = k; i < N; ++i) {
-        T sum = 0;
+        sum = 0;
         for (r = 0; r < k; ++r)
-          // sum += LU.array_access(i * N + r) * LU.array_access(r * N + k);
           sum += LU.at(i, r) * LU.at(r, k);
 
-        // LU.array_access(r * N + k) = LU.array_access(i * N + k) - sum;
         LU.at(i, k) = LU.at(i, k) - sum;
       }
 
       for (j = k + 1; j < N; ++j) {
-        T sum = 0;
+        sum = 0;
         for (r = 0; r < k; ++r)
-          // sum += LU.array_access(k * N + r) * LU.array_access(r * N + j);
           sum += LU.at(k, r) * LU.at(r, j);
 
         LU.at(k, j) = (LU.at(k, j) - sum) / LU.at(k, k);
@@ -141,13 +137,10 @@ public:
     return pivot;
   }
   /*
-   * Decomposes m into L and U using Crout's method with full pivoting
-   * It'll change the LU matrix.
-   * Returns the pivot matrix.
+   * Splits the LU matrix (compact version) into L matrix and U matrix.
+   * L and U need to be the same dimension of LU.
+   * Params L and U will be modified.
    */
-  template <typename T> static Matrix<unsigned> LUF_crout(const Matrix<T> &m, Matrix<T> &LU) {
-    // @todo
-  }
   template <typename T>
   static void split_LU_crout(const Matrix<T> &LU, Matrix<T> &L, Matrix<T> &U) {
     if (LU.rows() != LU.cols())
@@ -172,6 +165,7 @@ public:
   /*
    * Returns the determinant of the NxN matrix m using Crout's LU deecomposition with partial
    * pivoting.
+   * Matrix m must be a square matrix.
    */
   template <typename T> static T determinant(const Matrix<T> &m) {
     if (m.rows() != m.cols())
@@ -191,6 +185,8 @@ public:
   }
   /*
    * Returns the determinant of the NxN matrix given the matrix filled in LUP_crout.
+   * Matrix LU is filled at LUP_crout.
+   * Matrix pivot is the return of LUP_crout.
    */
   template <typename T> static T determinant_LU(const Matrix<T> &LU, const Matrix<int> &pivot) {
     if (LU.rows() != LU.cols())
@@ -208,6 +204,7 @@ public:
   }
   /*
    * Returns the inverse matrix of m.
+   * Matrix m must be square.
    */
   template <typename T> static Matrix<T> inverse(const Matrix<T> &m) {
     // @todo: working but need to fix the transposition
@@ -244,7 +241,8 @@ public:
     return I;
   }
   /*
-   * Returns the result of the multiplication of m1 * m2
+   * Returns the result of the multiplication of m1 * m2.
+   * The types T and U must be compatible.
    */
   template <typename T, typename U>
   static Matrix<T> multiplication(const Matrix<U> &m1, const Matrix<T> &m2) {
@@ -263,6 +261,7 @@ public:
   }
   /*
    * Returns an identity matrix.
+   * Param dimension is (duh) the desired matrix dimension.
    */
   template <typename T> static Matrix<T> identity(unsigned dimension) {
     if (dimension == 0)
