@@ -208,44 +208,44 @@ public:
    */
   template <typename T> static Matrix<T> inverse(const Matrix<T> &m) {
     // @todo: working but need to fix the transposition
-    if (m.rows() != m.cols())
-      throw std::domain_error("Matrix m must be square.");
+    // if (m.rows() != m.cols())
+    //   throw std::domain_error("Matrix m must be square.");
 
-    Matrix<T> LU(m.rows(), m.cols());
-    Matrix<T> I(m.rows(), m.cols());
-    Matrix<int> p = LUP_crout(m, LU);
-    LU = transpose(LU);
+    // Matrix<T> LU(m.rows(), m.cols());
+    // Matrix<T> I(m.rows(), m.cols());
+    // Matrix<int> p = LUP_crout(m, LU);
 
-    int i, j, k;
-    int N = m.rows();
+    // int i, j, k;
+    // int N = m.rows();
 
-    for (j = 0; j < N; ++j) {
-      for (i = 0; i < N; ++i) {
-        if (p.at(0, i) == j)
-          I.at(i, j) = 1;
-        else
-          I.at(i, j) = 0;
+    // for (j = 0; j < N; ++j) {
+    //   for (i = 0; i < N; ++i) {
+    //     if (p.at(0, i) == j)
+    //       I.at(i, j) = 1;
+    //     else
+    //       I.at(i, j) = 0;
 
-        for (k = 0; k < i; ++k)
-          I.at(i, j) -= LU.at(i, k) * I.at(k, j);
-      }
+    //     for (k = 0; k < i; ++k)
+    //       I.at(i, j) -= LU.at(i, k) * I.at(k, j);
+    //   }
 
-      for (i = N - 1; i >= 0; --i) {
-        for (k = i + 1; k < N; ++k)
-          I.at(i, j) -= LU.at(i, k) * I.at(k, j);
+    //   for (i = N - 1; i >= 0; --i) {
+    //     for (k = i + 1; k < N; ++k)
+    //       I.at(i, j) -= LU.at(i, k) * I.at(k, j);
 
-        I.at(i, j) = I.at(i, j) / LU.at(i, i);
-      }
-    }
+    //     I.at(i, j) = I.at(i, j) / LU.at(i, i);
+    //   }
+    // }
 
-    return I;
+    // return I;
   }
   /*
    * Returns the result of the multiplication of m1 * m2.
    * The types T and U must be compatible.
+   * It'll return a matrix of type T.
    */
   template <typename T, typename U>
-  static Matrix<T> multiplication(const Matrix<U> &m1, const Matrix<T> &m2) {
+  static Matrix<T> multiplication(const Matrix<T> &m1, const Matrix<U> &m2) {
     // @todo
     // naive method for now
     if (m1.cols() != m2.rows())
