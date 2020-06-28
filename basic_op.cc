@@ -163,6 +163,49 @@ public:
     }
   }
   /*
+   * Solves the X vector of the linear equation A*X=B using the LU and P matrix filled at LUP_crout,
+   * B is a vector given by the user.
+   * It'll return the vector X.
+   */
+  template <typename T>
+  static Matrix<T> solve_LU_crout(const Matrix<T> &LU, const Matrix<T> &B, const Matrix<int> &P) {
+    if (LU.cols() != B.rows())
+      throw std::domain_error(
+          "The number of cols of LU must be the same as the number of rows of B");
+
+    // pivoting B
+    Matrix<T> b = multiplication<T>(make_pivot(P), B);
+
+    int N = (int)LU.rows();
+    Matrix<T> x(N, 1);
+    T sum;
+
+    for (int i = 0; i < N; ++i) {
+      sum = 0;
+      for (int k = 0; k < i; ++k)
+        sum += LU.at(i, k) * x.at(k, 0);
+      x.at(i, 0) = (b.at(i, 0) - sum) / LU.at(i, i);
+    }
+
+    for (int i = N - 1; i >= 0; --i) {
+      sum = 0;
+      for (int k = i + 1; k < N; ++k)
+        sum += LU.at(i, k) * x.at(k, 0);
+
+      x.at(i, 0) = (x.at(i, 0) - sum);
+    }
+
+    return x;
+  }
+  /*
+   * Forward call to the other solve_LU_crout function but only taking the matrices A and B.
+   */
+  template <typename T> static Matrix<T> solve_LU_crout(const Matrix<T> &A, const Matrix<T> &B) {
+    Matrix<T> LU(A.rows(), A.cols());
+    Matrix<int> P = OP::LUP_crout(A, LU);
+    return solve_LU_crout(LU, B, P);
+  }
+  /*
    * Returns the determinant of the NxN matrix m using Crout's LU deecomposition with partial
    * pivoting.
    * Matrix m must be a square matrix.
@@ -244,8 +287,8 @@ public:
    * The types T and U must be compatible.
    * It'll return a matrix of type T.
    */
-  template <typename T, typename U>
-  static Matrix<T> multiplication(const Matrix<T> &m1, const Matrix<U> &m2) {
+  template <typename T, typename U, typename V>
+  static Matrix<T> multiplication(const Matrix<U> &m1, const Matrix<V> &m2) {
     // @todo
     // naive method for now
     if (m1.cols() != m2.rows())
