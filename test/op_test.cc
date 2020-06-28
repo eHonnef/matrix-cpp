@@ -50,17 +50,17 @@ TEST_CASE("LU decomposition", "[LU decomposition]") {
   Matrix<double> a({{0.448, 0.832, 0.193}, {0.421, 0.784, -0.207}, {-0.319, 0.884, 0.279}});
   Matrix<double> LU(a.rows(), a.cols());
 
-  OP::LUP_crout(a, LU);
+  OP::LUP_doolittle(a, LU);
 
   REQUIRE(LU.at(0, 0) == Approx(0.448).epsilon(0.001));
-  REQUIRE(LU.at(0, 1) == Approx(1.857).epsilon(0.001));
-  REQUIRE(LU.at(0, 2) == Approx(0.4308).epsilon(0.0001));
-  REQUIRE(LU.at(1, 0) == Approx(-0.319).epsilon(0.001));
+  REQUIRE(LU.at(0, 1) == Approx(0.832).epsilon(0.001));
+  REQUIRE(LU.at(0, 2) == Approx(0.193).epsilon(0.0001));
+  REQUIRE(LU.at(1, 0) == Approx(-0.712).epsilon(0.001));
   REQUIRE(LU.at(1, 1) == Approx(1.476).epsilon(0.001));
-  REQUIRE(LU.at(1, 2) == Approx(0.2821).epsilon(0.001));
-  REQUIRE(LU.at(2, 0) == Approx(0.421).epsilon(0.001));
-  REQUIRE(LU.at(2, 1) == Approx(0.00214).epsilon(0.01));
-  REQUIRE(LU.at(2, 2) == Approx(-0.3890).epsilon(0.0001));
+  REQUIRE(LU.at(1, 2) == Approx(0.416).epsilon(0.01));
+  REQUIRE(LU.at(2, 0) == Approx(0.939).epsilon(0.001));
+  REQUIRE(LU.at(2, 1) == Approx(0.0014).epsilon(0.1));
+  REQUIRE(LU.at(2, 2) == Approx(-0.388).epsilon(0.01));
 }
 
 TEST_CASE("LU decomposition split", "[LU decomposition split]") {
@@ -68,27 +68,27 @@ TEST_CASE("LU decomposition split", "[LU decomposition split]") {
   Matrix<int> L(LU.rows(), LU.rows());
   Matrix<int> U(LU.rows(), LU.rows());
 
-  OP::split_LU_crout(LU, L, U);
+  OP::split_LU_doolittle(LU, L, U);
 
   REQUIRE(L.at(0, 0) == 1);
   REQUIRE(L.at(0, 1) == 0);
   REQUIRE(L.at(0, 2) == 0);
   REQUIRE(L.at(1, 0) == 7);
-  REQUIRE(L.at(1, 1) == 8);
+  REQUIRE(L.at(1, 1) == 1);
   REQUIRE(L.at(1, 2) == 0);
   REQUIRE(L.at(2, 0) == 5);
   REQUIRE(L.at(2, 1) == 6);
-  REQUIRE(L.at(2, 2) == 9);
+  REQUIRE(L.at(2, 2) == 1);
 
   REQUIRE(U.at(0, 0) == 1);
   REQUIRE(U.at(0, 1) == 2);
   REQUIRE(U.at(0, 2) == 3);
   REQUIRE(U.at(1, 0) == 0);
-  REQUIRE(U.at(1, 1) == 1);
+  REQUIRE(U.at(1, 1) == 8);
   REQUIRE(U.at(1, 2) == 4);
   REQUIRE(U.at(2, 0) == 0);
   REQUIRE(U.at(2, 1) == 0);
-  REQUIRE(U.at(2, 2) == 1);
+  REQUIRE(U.at(2, 2) == 9);
 }
 
 TEST_CASE("Matrix determinant", "[Matrix determinant]") {
@@ -109,49 +109,49 @@ TEST_CASE("Identity Matrix", "[Identity Matrix]") {
   }
 }
 
-TEST_CASE("LU crout solver", "[LU Crout Solver]") {
+TEST_CASE("LU doolittle solver", "[LU doolittle Solver]") {
   Matrix<double> A({{0.448, 0.832, 0.193}, {0.421, 0.784, -0.207}, {-0.319, 0.884, 0.279}});
   Matrix<double> B({{1}, {2}, {0}});
 
   Matrix<double> LU(A.rows(), A.cols());
-  Matrix<int> P = OP::LUP_crout(A, LU);
+  Matrix<int> P = OP::LUP_doolittle(A, LU);
 
-  Matrix<double> y = OP::solve_LU_crout(LU, B, P);
-  y.print();
+  Matrix<double> y = OP::solve_LU_doolittle(LU, B, P);
   REQUIRE(y.at(0, 0) == Approx(1.082).epsilon(0.01));
   REQUIRE(y.at(1, 0) == Approx(1.251).epsilon(0.001));
   REQUIRE(y.at(2, 0) == Approx(-2.723).epsilon(0.001));
 }
 
 TEST_CASE("Inverse Matrix", "[Inverse Matrix]") {
-  // Matrix<double> a({{1, 2, 3}, {0, 1, 4}, {5, 6, 0}});
-  // a = OP::inverse(a);
+  Matrix<double> a({{1, 2, 3}, {0, 1, 4}, {5, 6, 0}});
+  a = OP::inverse(a);
 
-  // REQUIRE(a.at(0, 0) == Approx(-24));
-  // REQUIRE(a.at(0, 1) == Approx(18));
-  // REQUIRE(a.at(0, 2) == Approx(5));
-  // REQUIRE(a.at(1, 0) == Approx(20));
-  // REQUIRE(a.at(1, 1) == Approx(-15));
-  // REQUIRE(a.at(1, 2) == Approx(-4));
-  // REQUIRE(a.at(2, 0) == Approx(-5));
-  // REQUIRE(a.at(2, 1) == Approx(4));
-  // REQUIRE(a.at(2, 2) == Approx(1));
+  REQUIRE(a.at(0, 0) == Approx(-24));
+  REQUIRE(a.at(0, 1) == Approx(18));
+  REQUIRE(a.at(0, 2) == Approx(5));
+  REQUIRE(a.at(1, 0) == Approx(20));
+  REQUIRE(a.at(1, 1) == Approx(-15));
+  REQUIRE(a.at(1, 2) == Approx(-4));
+  REQUIRE(a.at(2, 0) == Approx(-5));
+  REQUIRE(a.at(2, 1) == Approx(4));
+  REQUIRE(a.at(2, 2) == Approx(1));
 }
 
 TEST_CASE("Further LU decomposition test", "[Further LU decomposition test]") {
   // PA = LU
-  // det(A) == det(LU) == det(L'U')
-  // Matrix<double> A({{1, 2, 3, 4}, {1, 2, -3, -4}, {-1, 0, 2, 3}, {1, -4, -1, 1}});
-  // Matrix<double> LU;
-  // Matrix<int> P;
+  // det(PA) == det(LU)
+  Matrix<double> A({{1, 2, 3, 4}, {1, 2, -3, -4}, {-1, 0, 2, 3}, {1, -4, -1, 1}});
+  Matrix<double> LU(A.rows());
+  Matrix<int> P = OP::make_pivot(OP::LUP_doolittle(A, LU));
 
-  // P = OP::LUP_crout(A, LU);
-  // Matrix<double> b = OP::multiplication(L, U);
-  // Matrix<double> c = OP::multiplication(P, A);
-  // Matrix<double> d = OP::multiplication(OP::inverse(L), OP::inverse(U));
+  Matrix<double> L(LU.rows());
+  Matrix<double> U(LU.rows());
 
-  // // REQUIRE(c == b); @todo: change the matrix operator==
-  // REQUIRE(OP::determinant(A) == Approx(OP::determinant(b)));
-  // REQUIRE(OP::determinant(d) == Approx(OP::determinant(A)));
-  // REQUIRE(OP::determinant(d) == Approx(OP::determinant(c)));
+  OP::split_LU_doolittle(LU, L, U);
+
+  Matrix<double> b = OP::multiplication<double>(L, U);
+  Matrix<double> c = OP::multiplication<double>(P, A);
+
+  REQUIRE(c == b);
+  REQUIRE(OP::determinant(c) == Approx(OP::determinant(b)));
 }

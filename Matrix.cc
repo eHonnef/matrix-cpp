@@ -17,6 +17,14 @@ template <class T> class Matrix {
 public:
   Matrix() = default;
 
+  Matrix(unsigned dimension) {
+    _rows = dimension;
+    _cols = dimension;
+    alloc();
+
+    fill(T());
+  }
+
   Matrix(unsigned rows, unsigned cols, T init_val = T()) {
     _rows = rows;
     _cols = cols;
